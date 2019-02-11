@@ -1,0 +1,5 @@
+output
+parsed
+node_modules
+*.txt
+test.js
