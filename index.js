@@ -3,13 +3,13 @@ var fs = require('fs');
 var columns = ["screen_name"];
 var csv = require("csv-to-array");
 
-
 var client = new Twitter({
     consumer_key: '',
     consumer_secret: '',
     access_token_key: '',
     access_token_secret: ''
 });
+
 
 var outputDir = 'output';
 

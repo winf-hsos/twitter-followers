@@ -1,7 +1,11 @@
-var fs = require('fs');
+//var fs = require('fs');
+const fs = require('graceful-fs');
 var columns = ["screen_name"];
 var csv = require("csv-to-array");
+var sleep = require('system-sleep');
 
+var recordCounter = 0;
+var fileCounter = 1;
 
 var outputFile = 'parsed/twitterusers.json'
 // Delete the old file (if exists)
@@ -10,46 +14,69 @@ if (fs.existsSync(outputFile)) {
     fs.unlinkSync(outputFile);
 }
 
-var screenNames;
+var screenNames = [];
 
-csv({
-    file: "users.csv",
-    columns: columns
-}, function (err, array) {
-    if (err)
-        console.error(err);
+var counter = 1;
+var total = -1;
 
-    screenNames = array;
+var path = './output';
+fs.readdir(path, function (err, items) {
+
+    var tempArray = [];
+
+    for (var i = 0; i < items.length; i++) {
+        //console.log(getUserNameFromFile(items[i]) + " --> " + items[i]);
+        tempArray.push(getUserNameFromFile(items[i]));
+    }
+
+    // Remove duplicates
+    screenNames = tempArray.filter(function (elem, pos) {
+        return tempArray.indexOf(elem) == pos;
+    })
+
+    total = screenNames.length;
+    console.log("Found " + total + " files!");
+
     parseData();
 });
 
+function getUserNameFromFile(filename) {
+    var splitFn = filename.split("_");
+
+    var twitterName = splitFn.slice(0, -1).join('_');
+    return twitterName;
+}
+
 var userArr = [];
+var json = {};
 
 function parseData() {
 
     screenNames.forEach((user) => {
-        userArr = [];
-
+        //global.gc();
+        userArr.length = 0;
         var c = 1;
 
         do {
-            var json = {};
+
             try {
-                json = require('./output/' + user.screen_name + '_' + c + '.json');
+                //json = require('./output/' + user + '_' + c + '.json');
+                json = JSON.parse(fs.readFileSync('./output/' + user + '_' + c + '.json', 'utf8'));
             }
             catch (err) {
                 // No more files
+                //console.dir(err);
+                json = {};
             }
 
-            var users = json.users;
-            if (users) {
+            if (json.users) {
 
-                users.forEach((u) => {
+                json.users.forEach((u) => {
 
-                    var userObj = {};
+                    let userObj = {};
                     //console.log(u.screen_name + ": " + u.followers_count + " | " + u.location);
 
-                    userObj.follower_of = user.screen_name;
+                    userObj.follower_of = user;
                     userObj.screen_name = u.screen_name;
                     userObj.followers_count = u.followers_count;
                     userObj.friends_count = u.friends_count;
@@ -65,8 +92,9 @@ function parseData() {
 
         } while (json.users)
 
-        console.log("Done with >" + user.screen_name + "<");
+        counter++;
         writeToFile();
+        console.log("Done with >" + user + "< (" + counter + "/" + total + ") and >" + recordCounter + "< records in sum.");
 
     })
 }
@@ -77,7 +105,22 @@ function writeToFile() {
 
         var userStr = JSON.stringify(userArr[i]);
         fs.appendFileSync(outputFile, userStr + '\n', 'utf8');
+
+        recordCounter++;
+
+        /*
+        if (recordCounter % 50000 == 0) {
+            fileCounter++;
+            outputFile = 'parsed/twitterusers_' + fileCounter + '.json'
+
+            if (fs.existsSync(outputFile)) {
+                fs.unlinkSync(outputFile);
+            }
+        }
+        */
+
     }
+    //sleep(1);
 }
 
 
