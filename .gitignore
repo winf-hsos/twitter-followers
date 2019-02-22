@@ -1,6 +1,9 @@
 output
+output_tmp
 parsed
 node_modules
 *.txt
 *.zip
+*.gz
+*.json
 test.js

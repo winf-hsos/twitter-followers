@@ -83,6 +83,7 @@ function parseData() {
                     userObj.statuses_count = u.statuses_count;
                     userObj.description = u.description;
                     userObj.lang = u.lang;
+                    userObj.protected = u.protected;
 
                     userArr.push(userObj);
                 })

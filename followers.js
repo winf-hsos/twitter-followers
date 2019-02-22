@@ -10,8 +10,7 @@ var client = new Twitter({
     access_token_secret: ''
 });
 
-
-var outputDir = 'output';
+var outputDir = 'output_tmp';
 
 // Index for screenNames-Array
 var i = 0;
@@ -58,6 +57,10 @@ function readFollowers() {
                     console.log("Limit reached! Scheduling next try for in ca. 15 minutes...");
                     console.log("Next cursor: " + nextCursor);
                     setTimeout(readFollowers, 1001 * 60 * 15);
+                }
+                else if (errorObj.code == 34) {
+                    console.log("Problem with user >" + screenNames[i].screen_name + "<, moving on.");
+                    continueWithNext();
                 }
                 else {
                     console.error("New error: " + errorObj.code + " | " + errorObj.message);
